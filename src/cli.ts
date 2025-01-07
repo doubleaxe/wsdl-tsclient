@@ -43,6 +43,10 @@ const conf = yargs(process.argv.slice(2))
         type: "boolean",
         description: "Use wsdl schema type names instead of parameter names for generated interface names",
     })
+    .option("stripNamespacePrefix", {
+        type: "boolean",
+        description: "Strip namespace prefix from generated interface names",
+    })
     .option("maxRecursiveDefinitionName", {
         type: "number",
         description:
@@ -130,6 +134,10 @@ if (conf.caseInsensitiveNames) {
 
 if (conf.useWsdlTypeNames) {
     options.useWsdlTypeNames = conf.useWsdlTypeNames;
+}
+
+if (conf.stripNamespacePrefix) {
+    options.stripNamespacePrefix = conf.stripNamespacePrefix;
 }
 
 if (conf.esm) {

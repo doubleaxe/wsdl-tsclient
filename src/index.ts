@@ -38,6 +38,11 @@ export interface Options {
      */
     useWsdlTypeNames: boolean;
     /**
+     * Strip namespace prefix from generated interface names
+     * @default false
+     */
+    stripNamespacePrefix: boolean;
+    /**
      * Maximum count of definition's with same name but increased suffix. Will throw an error if exceed
      * @default 64
      */
@@ -73,6 +78,7 @@ export const defaultOptions: Options = {
     modelNameSuffix: "",
     caseInsensitiveNames: false,
     useWsdlTypeNames: false,
+    stripNamespacePrefix: false,
     maxRecursiveDefinitionName: 64,
     modelPropertyNaming: null,
     esm: false,

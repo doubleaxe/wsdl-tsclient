@@ -43,6 +43,11 @@ export interface Options {
      */
     stripNamespacePrefix: boolean;
     /**
+     * Allows string type for request interfaces, produces unions like 'number | string'
+     * @default false
+     */
+    allowRequestStringTypes: boolean;
+    /**
      * Maximum count of definition's with same name but increased suffix. Will throw an error if exceed
      * @default 64
      */
@@ -79,6 +84,7 @@ export const defaultOptions: Options = {
     caseInsensitiveNames: false,
     useWsdlTypeNames: false,
     stripNamespacePrefix: false,
+    allowRequestStringTypes: false,
     maxRecursiveDefinitionName: 64,
     modelPropertyNaming: null,
     esm: false,

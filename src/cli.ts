@@ -47,6 +47,10 @@ const conf = yargs(process.argv.slice(2))
         type: "boolean",
         description: "Strip namespace prefix from generated interface names",
     })
+    .option("allowRequestStringTypes", {
+        type: "boolean",
+        description: "Allows string type for request interfaces, produces unions like 'number | string'",
+    })
     .option("maxRecursiveDefinitionName", {
         type: "number",
         description:
@@ -138,6 +142,10 @@ if (conf.useWsdlTypeNames) {
 
 if (conf.stripNamespacePrefix) {
     options.stripNamespacePrefix = conf.stripNamespacePrefix;
+}
+
+if (conf.allowRequestStringTypes) {
+    options.allowRequestStringTypes = conf.allowRequestStringTypes;
 }
 
 if (conf.esm) {

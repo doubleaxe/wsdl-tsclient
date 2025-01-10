@@ -26,6 +26,7 @@ interface ParserOptions {
     caseInsensitiveNames: boolean;
     useWsdlTypeNames: boolean;
     stripNamespacePrefix: boolean;
+    allowRequestStringTypes: boolean;
 }
 
 const defaultOptions: ParserOptions = {
@@ -35,6 +36,7 @@ const defaultOptions: ParserOptions = {
     caseInsensitiveNames: false,
     useWsdlTypeNames: false,
     stripNamespacePrefix: false,
+    allowRequestStringTypes: false,
 };
 
 type VisitedDefinition = {
@@ -61,12 +63,17 @@ const NODE_SOAP_PARSED_TYPES: { [type: string]: string } = {
     date: "Date",
 };
 
-function toPrimitiveType(type: string): string {
+function toPrimitiveType(type: string, isInput: boolean, options: ParserOptions): string {
     const index = type.indexOf(":");
     if (index >= 0) {
         type = type.substring(index + 1);
     }
-    return NODE_SOAP_PARSED_TYPES[type] || "string";
+    const typeMap = NODE_SOAP_PARSED_TYPES[type];
+    if (!typeMap) return "string";
+    if (isInput && options.allowRequestStringTypes) {
+        return `${typeMap} | string`;
+    }
+    return typeMap;
 }
 
 type ElementSchema = ElementElement | ComplexTypeElement | SimpleTypeElement;
@@ -139,7 +146,8 @@ function parseDefinition(
     stack: string[],
     visitedDefs: Array<VisitedDefinition>,
     definitions: DefinitionsElement,
-    schema: ElementSchema | undefined
+    schema: ElementSchema | undefined,
+    isInput: boolean
 ): Definition {
     const defName = changeCase(name, { pascalCase: true });
 
@@ -190,7 +198,7 @@ function parseDefinition(
                             name: stripedPropName,
                             sourceName: propName,
                             description: type,
-                            type: toPrimitiveType(type),
+                            type: toPrimitiveType(type, isInput, options),
                             isArray: true,
                         });
                     } else if (type instanceof ComplexTypeElement) {
@@ -228,7 +236,8 @@ function parseDefinition(
                                     [...stack, propName],
                                     visitedDefs,
                                     definitions,
-                                    propSchema
+                                    propSchema,
+                                    isInput
                                 );
                                 definition.properties.push({
                                     kind: "REFERENCE",
@@ -252,7 +261,7 @@ function parseDefinition(
                         name: propName,
                         sourceName: propName,
                         description: type,
-                        type: toPrimitiveType(type),
+                        type: toPrimitiveType(type, isInput, options),
                         isArray: false,
                     });
                 } else if (type instanceof ComplexTypeElement) {
@@ -291,7 +300,8 @@ function parseDefinition(
                                 [...stack, propName],
                                 visitedDefs,
                                 definitions,
-                                propSchema
+                                propSchema,
+                                isInput
                             );
                             definition.properties.push({
                                 kind: "REFERENCE",
@@ -394,7 +404,8 @@ export async function parseWsdl(wsdlPath: string, options: Partial<ParserOptions
                                             [typeName],
                                             visitedDefinitions,
                                             wsdl.definitions,
-                                            schema
+                                            schema,
+                                            true
                                         );
                                 } else if (inputMessage.parts) {
                                     const type = parsedWsdl.findDefinition(requestParamName);
@@ -408,7 +419,8 @@ export async function parseWsdl(wsdlPath: string, options: Partial<ParserOptions
                                             [requestParamName],
                                             visitedDefinitions,
                                             wsdl.definitions,
-                                            undefined
+                                            undefined,
+                                            true
                                         );
                                 } else {
                                     Logger.debug(
@@ -444,7 +456,8 @@ export async function parseWsdl(wsdlPath: string, options: Partial<ParserOptions
                                             [typeName],
                                             visitedDefinitions,
                                             wsdl.definitions,
-                                            schema
+                                            schema,
+                                            false
                                         );
                                 } else {
                                     const type = parsedWsdl.findDefinition(responseParamName);
@@ -458,7 +471,8 @@ export async function parseWsdl(wsdlPath: string, options: Partial<ParserOptions
                                             [responseParamName],
                                             visitedDefinitions,
                                             wsdl.definitions,
-                                            undefined
+                                            undefined,
+                                            false
                                         );
                                 }
                             }
